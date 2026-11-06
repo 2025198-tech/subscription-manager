@@ -74,7 +74,7 @@
     <div id="tab-list" class="tab-content">
       <div class="card">
         <h3>📋 등록된 구독 서비스</h3>
-        <div id="subList">로딩 중...</div>
+        <div id="subList">불러오는 중...</div>
       </div>
     </div>
 
@@ -142,8 +142,8 @@
   </div>
 
   <script>
-    // ⚠️ 여게에 본인의 구글 앱스 스크립트 웹앱 배포 URL을 입력하세요!
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyMYPFUgx1Z_yKZ5mjYVq6rxSpIse9yoYgz3TfuFZyAo8aORer3YJvzsOgDa1AbRudm/exec";
+    // 📌 아래 큰따옴표 안에 배포받으신 본인의 구글 웹앱 URL을 붙여넣으세요!
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzxGT81RUCVr9Rw4ZzNEdFgnj4Ri3vg26J490GhXISjB7GkPPscYCkHkNyU0wKH8IYd/exec";
 
     document.getElementById('payDate').value = new Date().toISOString().substring(0, 10);
 
@@ -161,21 +161,19 @@
 
     // 1. 목록 데이터 조회 (GET API)
     function loadSubscriptions() {
-      if (GAS_API_URL === "YOUR_GAS_WEBAPP_URL_HERE") {
-        document.getElementById('subList').innerHTML = '<p style="color:red; text-align:center;">GAS_API_URL을 설정해 주세요.</p>';
-        return;
-      }
-
       fetch(GAS_API_URL)
         .then(res => res.json())
         .then(res => {
           if (res.result === 'success') {
             renderData(res.data);
           } else {
-            alert('데이터 로드 실패: ' + res.message);
+            document.getElementById('subList').innerHTML = '<p style="text-align:center; color:red;">불러오기 실패: ' + res.message + '</p>';
           }
         })
-        .catch(err => console.error(err));
+        .catch(err => {
+          console.error(err);
+          document.getElementById('subList').innerHTML = '<p style="text-align:center; color:red;">통신 오류가 발생했습니다. URL을 확인해주세요.</p>';
+        });
     }
 
     function renderData(subs) {
