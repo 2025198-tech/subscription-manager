@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <base target="_top">
+  <title>정기 구독 관리 매니저</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      padding: 24px 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* 탭 네비게이션 */
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* 탭 컨텐츠 제어 */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* 카드 UI 컴포넌트 */
+    .card {
+      background: var(--surface);
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .stat-card {
+      background: #f1f5f9;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-card h4 { margin: 0 0 8px 0; font-size: 13px; color: var(--text-muted); }
+    .stat-card .val { font-size: 20px; font-weight: bold; color: var(--primary); }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+    
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--primary-hover); }
+
+    .sub-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-item:last-child { border-bottom: none; }
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: #e0e7ff;
+      color: var(--primary);
+      border-radius: 12px;
+    }
+    .btn-del {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2 style="margin:0;">정기 구독 관리 매니저</h2>
+  </div>
+
+  <div class="container">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('dashboard')">대시보드</button>
+      <button class="tab-btn" onclick="switchTab('list')">구독 목록</button>
+      <button class="tab-btn" onclick="switchTab('add')">구독 추가</button>
+      <button class="tab-btn" onclick="switchTab('calc')">N빵 계산기</button>
+    </div>
+
+    <!-- 탭 1: 대시보드 -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="card">
+        <h3>💰 지출 현황 요약</h3>
+        <div class="dashboard-grid">
+          <div class="stat-card">
+            <h4>월간 총 실부담금</h4>
+            <div class="val" id="monthlyTotal">0원</div>
+          </div>
+          <div class="stat-card">
+            <h4>연간 총 실부담금</h4>
+            <div class="val" id="yearlyTotal">0원</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 탭 2: 구독 목록 -->
+    <div id="tab-list" class="tab-content">
+      <div class="card">
+        <h3>📋 등록된 구독 서비스</h3>
+        <div id="subList">로딩 중...</div>
+      </div>
+    </div>
+
+    <!-- 탭 3: 구독 추가 -->
+    <div id="tab-add" class="tab-content">
+      <div class="card">
+        <h3>➕ 새 구독 서비스 추가</h3>
+        <form id="subForm" onsubmit="handleFormSubmit(event)">
+          <div class="form-group">
+            <label>서비스명</label>
+            <input type="text" id="name" placeholder="예: Netflix, Spotify" required>
+          </div>
+          <div class="form-group">
+            <label>카테고리</label>
+            <select id="category">
+              <option value="OTT">OTT</option>
+              <option value="음악">음악</option>
+              <option value="도서/웹툰">도서/웹툰</option>
+              <option value="SW/클라우드">SW/클라우드</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>결제 금액(원)</label>
+            <input type="number" id="price" placeholder="17000" required>
+          </div>
+          <div class="form-group">
+            <label>결제 주기</label>
+            <select id="period">
+              <option value="monthly">매월 결제</option>
+              <option value="yearly">매년 결제</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>결제일 선택 (달력)</label>
+            <input type="date" id="payDate" required>
+          </div>
+          <div class="form-group">
+            <label>파티원 수 (본인 포함)</label>
+            <input type="number" id="members" value="1" min="1" required>
+          </div>
+          <button type="submit" class="btn-submit">등록하기</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 탭 4: N빵 계산기 -->
+    <div id="tab-calc" class="tab-content">
+      <div class="card">
+        <h3>🧮 파티원 비용 분할 계산기</h3>
+        <div class="form-group">
+          <label>총 결제 금액</label>
+          <input type="number" id="calcPrice" placeholder="금액 입력" oninput="calculateNbbang()">
+        </div>
+        <div class="form-group">
+          <label>파티원 수 (명)</label>
+          <input type="number" id="calcMembers" value="4" min="1" oninput="calculateNbbang()">
+        </div>
+        <div style="background:#f1f5f9; padding:15px; border-radius:8px; text-align:center; margin-top:15px;">
+          <span style="font-size:13px; color:var(--text-muted);">1인당 부담 금액</span>
+          <h2 id="calcResult" style="margin:5px 0 0 0; color:var(--primary);">0원</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 기본 날짜를 오늘로 설정
+    document.getElementById('payDate').value = new Date().toISOString().substring(0, 10);
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabName).classList.add('active');
+    }
+
+    window.onload = function() {
+      loadSubscriptions();
+    };
+
+    function loadSubscriptions() {
+      if (typeof google !== 'undefined' && google.script) {
+        google.script.run.withSuccessHandler(renderData).getSubscriptions();
+      }
+    }
+
+    function renderData(subs) {
+      const listDiv = document.getElementById('subList');
+      if (!subs || subs.length === 0) {
+        listDiv.innerHTML = '<p style="text-align:center; color:var(--text-muted);">등록된 구독이 없습니다.</p>';
+        updateTotals(0, 0);
+        return;
+      }
+
+      let html = '';
+      let monthlySum = 0;
+      let yearlySum = 0;
+
+      subs.forEach(sub => {
+        const myPrice = Math.round(sub.price / sub.members);
+        const myMonthly = sub.period === 'monthly' ? myPrice : Math.round(myPrice / 12);
+        const myYearly = sub.period === 'yearly' ? myPrice : myPrice * 12;
+
+        monthlySum += myMonthly;
+        yearlySum += myYearly;
+
+        html += `
+          <div class="sub-item">
+            <div>
+              <strong>${sub.name}</strong> <span class="badge">${sub.category}</span>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+                매월 ${sub.payDate}일 결제 | 파티원 ${sub.members}명
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:bold;">내 부담금: ${myPrice.toLocaleString()}원</div>
+              <button class="btn-del" style="margin-top:4px;" onclick="deleteSub('${sub.id}')">삭제</button>
+            </div>
+          </div>
+        `;
+      });
+
+      listDiv.innerHTML = html;
+      updateTotals(monthlySum, yearlySum);
+    }
+
+    function updateTotals(m, y) {
+      document.getElementById('monthlyTotal').innerText = m.toLocaleString() + '원';
+      document.getElementById('yearlyTotal').innerText = y.toLocaleString() + '원';
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const form = {
+        name: document.getElementById('name').value,
+        category: document.getElementById('category').value,
+        price: document.getElementById('price').value,
+        period: document.getElementById('period').value,
+        payDate: document.getElementById('payDate').value,
+        members: document.getElementById('members').value
+      };
+
+      if (typeof google !== 'undefined' && google.script) {
+        google.script.run.withSuccessHandler(() => {
+          document.getElementById('subForm').reset();
+          document.getElementById('payDate').value = new Date().toISOString().substring(0, 10);
+          switchTab('list');
+          loadSubscriptions();
+        }).addSubscription(form);
+      }
+    }
+
+    function deleteSub(id) {
+      if (confirm('정말 삭제하시겠습니까?')) {
+        if (typeof google !== 'undefined' && google.script) {
+          google.script.run.withSuccessHandler(() => loadSubscriptions()).deleteSubscription(id);
+        }
+      }
+    }
+
+    function calculateNbbang() {
+      const price = Number(document.getElementById('calcPrice').value) || 0;
+      const members = Number(document.getElementById('calcMembers').value) || 1;
+      const result = Math.round(price / members);
+      document.getElementById('calcResult').innerText = result.toLocaleString() + '원';
+    }
+  </script>
+</body>
+</html>
